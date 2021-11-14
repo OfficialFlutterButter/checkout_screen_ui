@@ -1,0 +1,31 @@
+name: checkout_screen_ui
+description: A new Flutter project.
+version: 0.1.0
+homepage: https://github.com/jonesw5/checkout_ui_screen
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  text_form_field_wrapper: 1.0.0
+  url_launcher: ^6.0.13 
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^1.0.0
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter.
+flutter:
+
+  assets:
+    - assets/images/
+
+    
+
