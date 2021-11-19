@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  text_form_field_wrapper: 1.0.0
+  text_form_field_wrapper: ^1.0.0
   url_launcher: ^6.0.13 
 
 dev_dependencies:
