@@ -82,10 +82,6 @@ class MyDemoPage extends StatelessWidget {
     /// A list of item will be needed to pass into the checkout page. This is a
     /// simple demo array of [PriceItem]s used to make the demo work. The total
     /// price is automatically added later.
-    ///
-    /// **NOTE:**
-    /// It is recommended to have no more that 10 items when using the
-    /// current version due to limits of scrolling ability
     final List<PriceItem> _priceItems = [
       PriceItem(name: 'Product A', quantity: 1, totalPriceCents: 5200),
       PriceItem(name: 'Product B', quantity: 2, totalPriceCents: 8599),
