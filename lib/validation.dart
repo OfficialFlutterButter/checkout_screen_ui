@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class FormValidator {
@@ -115,6 +114,7 @@ class RegexValidator implements StringValidator {
 
   /// value: the input string
   /// returns: true if the input string is a full match for regexSource
+  @override
   bool isValid(String value) {
     try {
       final regex = RegExp(regexSource!);
@@ -222,7 +222,7 @@ class MaskedTextInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
       TextEditingValue oldValue, TextEditingValue newValue) {
-    if (newValue.text.length > 0) {
+    if (newValue.text.isNotEmpty) {
       if (newValue.text.length > oldValue.text.length) {
         if (newValue.text.length > mask.length) return oldValue;
         if (newValue.text.length < mask.length &&

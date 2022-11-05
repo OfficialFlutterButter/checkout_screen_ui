@@ -41,7 +41,8 @@ class CheckoutPage extends StatelessWidget {
       this.cashPrice,
       this.displayTestData = false,
       this.footer})
-      : assert(priceItems.length <= 10),
+      :
+        // assert(priceItems.length <= 10),
         super(key: key);
 
   /// The list of items with prices [PriceItem]'s to be shown within the
@@ -52,7 +53,7 @@ class CheckoutPage extends StatelessWidget {
   /// ex: 12.99
   final double? cashPrice;
 
-  /// Provide the name of the vendor handling the transaction or recieving the
+  /// Provide the name of the vendor handling the transaction or receiving the
   /// funds from the user during this transaction
   final String payToName;
 
@@ -73,7 +74,7 @@ class CheckoutPage extends StatelessWidget {
   /// option. Can be left null if Cash option is not to be displayed
   final Function? onCashPay;
 
-  /// Provide a function that recieves [CardFormResults] as a parameter that is
+  /// Provide a function that receives [CardFormResults] as a parameter that is
   /// to be trigger once the user completes the credit card form and presses
   /// pay
   final Function(CardFormResults) onCardPay;
@@ -103,7 +104,7 @@ class CheckoutPage extends StatelessWidget {
   /// country's needs to verify a card. This form may not work for all countries
   final List<String>? countriesOverride;
 
-  /// If you would like to provide an integraded back button in the header, add
+  /// If you would like to provide an integrated back button in the header, add
   /// add the needed functionality here.
   /// ex) onBack : ()=>Navigator.of(context).pop();
   final Function? onBack;
@@ -166,7 +167,8 @@ class CheckoutPage extends StatelessWidget {
 
     // calculate the height of the expanded appbar based on the total number
     // of line items to display.
-    final double _expHeight = (_priceItems.length * 50) + 165;
+    final double _expHeight =
+        (_priceItems.length > 10 ? 500 : _priceItems.length * 50) + 165;
 
     // Calculate the init height the scroll should be set to to properly
     // display the title and amount to be charged
@@ -177,8 +179,8 @@ class CheckoutPage extends StatelessWidget {
         ScrollController(initialScrollOffset: _initHeight);
 
     // create a key to modify the details text based on appbar expanded status
-    final GlobalKey<_StatefullWrapperState> textKey =
-        GlobalKey<_StatefullWrapperState>();
+    final GlobalKey<_StatefulWrapperState> textKey =
+        GlobalKey<_StatefulWrapperState>();
 
     // set the text that should be display based on the appbar status
     const Widget textWhileClosed = Text(
@@ -196,9 +198,9 @@ class CheckoutPage extends StatelessWidget {
       if (result != _isOpen) {
         _isOpen = result;
         if (_isOpen) {
-          textKey.currentState?.setchild(textWhileOpen);
+          textKey.currentState?.setChild(textWhileOpen);
         } else {
-          textKey.currentState?.setchild(textWhileClosed);
+          textKey.currentState?.setChild(textWhileClosed);
         }
       }
     });
@@ -259,7 +261,7 @@ class CheckoutPage extends StatelessWidget {
                         fontSize: 24,
                         fontWeight: FontWeight.bold),
                   ),
-                  _StatefullWrapper(
+                  _StatefulWrapper(
                     key: textKey,
                     initChild: textWhileClosed,
                   ),
@@ -277,11 +279,15 @@ class CheckoutPage extends StatelessWidget {
                   const SizedBox(
                     height: 30,
                   ),
-                  Column(
-                    children: _priceItems
-                        .map(
-                            (priceItem) => _PriceListItem(priceItem: priceItem))
-                        .toList(),
+                  Container(
+                    constraints: const BoxConstraints(maxHeight: 400),
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: _priceItems
+                          .map((priceItem) =>
+                              _PriceListItem(priceItem: priceItem))
+                          .toList(),
+                    ),
                   ),
                 ],
               ),
@@ -299,7 +305,7 @@ class CheckoutPage extends StatelessWidget {
                     if (displayNativePay)
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          primary: Colors.black,
+                          backgroundColor: Colors.black,
                           minimumSize: const Size(double.infinity, 50),
                         ),
                         onPressed: () {
@@ -359,7 +365,7 @@ class CheckoutPage extends StatelessWidget {
                     if (displayCashPay)
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          primary: Colors.green,
+                          backgroundColor: Colors.green,
                           minimumSize: const Size(double.infinity, 50),
                         ),
                         onPressed: () {
@@ -458,19 +464,18 @@ class CheckoutPage extends StatelessWidget {
 }
 
 /// Private and simple class meant to wrap a stateless widget
-class _StatefullWrapper extends StatefulWidget {
-  const _StatefullWrapper({Key? key, required this.initChild})
-      : super(key: key);
+class _StatefulWrapper extends StatefulWidget {
+  const _StatefulWrapper({Key? key, required this.initChild}) : super(key: key);
   final Widget initChild;
 
   @override
-  _StatefullWrapperState createState() => _StatefullWrapperState();
+  _StatefulWrapperState createState() => _StatefulWrapperState();
 }
 
-class _StatefullWrapperState extends State<_StatefullWrapper> {
+class _StatefulWrapperState extends State<_StatefulWrapper> {
   late Widget child;
 
-  setchild(Widget newChild) {
+  setChild(Widget newChild) {
     setState(() {
       child = newChild;
     });
@@ -593,7 +598,7 @@ class _PriceListItem extends StatelessWidget {
   }
 }
 
-/// Status of the pay button based ont he transaction in progess.
+/// Status of the pay button based ont he transaction in progress.
 /// The icon and text will update based on the status provided
 enum CardPayButtonStatus {
   // ignore: constant_identifier_names
@@ -683,7 +688,7 @@ class CardPayButtonState extends State<CardPayButton> {
   Widget build(BuildContext context) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        primary: color,
+        backgroundColor: color,
         minimumSize: const Size(double.infinity, 50),
       ),
       onPressed: (status == CardPayButtonStatus.ready)
@@ -732,7 +737,7 @@ class CardFormResults {
   /// 10 digit phone number. numeric characters only and no spaces
   final String phone;
 
-  /// getter to retrive the year from expiration string
+  /// getter to retrieve the year from expiration string
   int get expYear => int.parse(cardExpiry.split('/')[1]) + 2000;
 
   /// getter to retrieve the expiration month from the expiration string
@@ -746,12 +751,12 @@ class CardFormResults {
 
 /// The CheckoutPageFooter is a pre-constructed footer that only requires url
 /// links to the desired publicly accessible terms of service page and terms
-/// of service page. There is alos the ability to add a foot note that can be
+/// of service page. There is also the ability to add a foot note that can be
 /// also be linked to a publicly accessible webpage.
 class CheckoutPageFooter extends StatelessWidget {
   /// The CheckoutPageFooter is a pre-constructed footer that only requires url
   /// links to the desired publicly accessible terms of service page and terms
-  /// of service page. There is alos the ability to add a foot note that can be
+  /// of service page. There is also the ability to add a foot note that can be
   /// also be linked to a publicly accessible webpage.
   const CheckoutPageFooter(
       {Key? key,
@@ -796,8 +801,9 @@ class CheckoutPageFooter extends StatelessWidget {
               TextButton(
                 onPressed: () async {
                   if (noteLink != null) {
-                    await canLaunch(noteLink!)
-                        ? await launch(noteLink!)
+                    final uri = Uri(path: noteLink!);
+                    await canLaunchUrl(uri)
+                        ? await launchUrl(uri)
                         : throw 'Could not launch $noteLink';
                   }
                 },
@@ -814,8 +820,9 @@ class CheckoutPageFooter extends StatelessWidget {
           children: [
             TextButton(
               onPressed: () async {
-                await canLaunch(termsLink)
-                    ? await launch(termsLink)
+                final uri = Uri(path: termsLink);
+                await canLaunchUrl(uri)
+                    ? await launchUrl(uri)
                     : throw 'Could not launch $termsLink';
               },
               child: const Text('Terms'),
@@ -825,8 +832,9 @@ class CheckoutPageFooter extends StatelessWidget {
             ),
             TextButton(
                 onPressed: () async {
-                  await canLaunch(privacyLink)
-                      ? await launch(privacyLink)
+                  final uri = Uri(path: privacyLink);
+                  await canLaunchUrl(uri)
+                      ? await launchUrl(uri)
                       : throw 'Could not launch $privacyLink';
                 },
                 child: const Text('Privacy')),

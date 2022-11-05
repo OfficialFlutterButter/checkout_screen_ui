@@ -8,7 +8,7 @@ A Widget representing a checkout screen that accepts native and credit card paym
 
 In the `pubspec.yaml` of your flutter project, add the following dependency:
  ``` yaml dependencies:
- checkout_ui_screen: ^0.1.2
+ checkout_ui_screen: ^0.1.3
 ```
 Import it to each file you use it in:
  ``` dart

@@ -46,7 +46,7 @@ class CreditCardForm extends StatefulWidget {
   /// [initEmail] is provided
   final bool lockEmail;
 
-  /// Provide a function that recieves [CardFormResults] as a parameter that is
+  /// Provide a function that receives [CardFormResults] as a parameter that is
   /// to be trigger once the user completes the credit card form and presses
   /// pay
   final Function(CardFormResults) onCardPay;
