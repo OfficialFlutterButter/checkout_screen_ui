@@ -207,9 +207,6 @@ class PhoneRegexValidator extends RegexValidator {
   PhoneRegexValidator() : super(regexSource: r'^[0-9]{10}$');
 }
 
-// import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
-
 class MaskedTextInputFormatter extends TextInputFormatter {
   final String mask;
   final String separator;
