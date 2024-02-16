@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:text_form_field_wrapper/text_form_field_wrapper.dart';
-import 'checkout_page.dart';
+import '../models/card_form_results.dart';
+import '../ui_components/pay_button.dart';
 import 'validation.dart';
 import 'dart:async';
 
@@ -159,8 +160,8 @@ class _CreditCardFormState extends State<CreditCardForm> {
             const SizedBox(
               height: 20,
             ),
-          Row(
-            children: const [
+          const Row(
+            children: [
               Padding(
                 padding: EdgeInsets.fromLTRB(4, 16, 0, 4),
                 child: Text('Card Information'),
@@ -273,8 +274,8 @@ class _CreditCardFormState extends State<CreditCardForm> {
               ),
             ],
           ),
-          Row(
-            children: const [
+          const Row(
+            children: [
               Padding(
                 padding: EdgeInsets.fromLTRB(4, 16, 0, 4),
                 child: Text('Name on card'),
@@ -300,8 +301,8 @@ class _CreditCardFormState extends State<CreditCardForm> {
               ),
             ),
           ),
-          Row(
-            children: const [
+          const Row(
+            children: [
               Padding(
                 padding: EdgeInsets.fromLTRB(4, 16, 0, 4),
                 child: Text('Country or region'),
@@ -361,8 +362,8 @@ class _CreditCardFormState extends State<CreditCardForm> {
           const SizedBox(
             height: 30,
           ),
-          Row(
-            children: const [
+          const Row(
+            children: [
               Padding(
                 padding: EdgeInsets.fromLTRB(4, 16, 0, 4),
                 child: Text('Phone Number'),

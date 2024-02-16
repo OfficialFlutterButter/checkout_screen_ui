@@ -1,5 +1,8 @@
+// ignore_for_file: avoid_print
+
 import 'dart:io';
-import 'package:checkout_screen_ui/checkout_page.dart';
+import 'package:checkout_screen_ui/checkout_ui.dart';
+import 'package:checkout_screen_ui/models/checkout_result.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -64,7 +67,8 @@ class MyDemoPage extends StatelessWidget {
     /// NOTE: This function in our demo example is under the widget's 'build'
     /// method only because it needs access to an instance variable. There is
     /// no requirement to have this function built here in live code.
-    Future<void> _creditPayClicked(CardFormResults results) async {
+    Future<void> _creditPayClicked(
+        CardFormResults results, CheckOutResult checkOutResult) async {
       // you can update the pay button to show something is happening
       _payBtnKey.currentState?.updateStatus(CardPayButtonStatus.processing);
 
@@ -72,9 +76,23 @@ class MyDemoPage extends StatelessWidget {
       // processing api
       demoOnlyStuff.callTransactionApi(_payBtnKey);
 
-      // ignore: avoid_print
       print(results);
       // WARNING: you should NOT print the above out using live code
+
+      for (PriceItem item in checkOutResult.priceItems) {
+        print('Item: ${item.name} - Quantity: ${item.quantity}');
+      }
+
+      final String subtotal =
+          (checkOutResult.subtotalCents / 100).toStringAsFixed(2);
+      print('Subtotal: \$$subtotal');
+
+      final String tax = (checkOutResult.taxCents / 100).toStringAsFixed(2);
+      print('Tax: \$$tax');
+
+      final String total =
+          (checkOutResult.totalCostCents / 100).toStringAsFixed(2);
+      print('Total: \$$total');
     }
 
     /// REQUIRED: A list of what the user is buying
@@ -83,10 +101,14 @@ class MyDemoPage extends StatelessWidget {
     /// simple demo array of [PriceItem]s used to make the demo work. The total
     /// price is automatically added later.
     final List<PriceItem> _priceItems = [
-      PriceItem(name: 'Product A', quantity: 1, totalPriceCents: 5200),
-      PriceItem(name: 'Product B', quantity: 2, totalPriceCents: 8599),
-      PriceItem(name: 'Product C', quantity: 1, totalPriceCents: 2499),
-      PriceItem(name: 'Delivery Charge', quantity: 1, totalPriceCents: 1599),
+      PriceItem(name: 'Product A', quantity: 1, itemCostCents: 5200),
+      PriceItem(name: 'Product B', quantity: 2, itemCostCents: 8599),
+      PriceItem(name: 'Product C', quantity: 1, itemCostCents: 2499),
+      PriceItem(
+          name: 'Delivery Charge',
+          quantity: 1,
+          itemCostCents: 1599,
+          canEditQuantity: false),
     ];
 
     /// REQUIRED: A name representing the receiver of the funds from user
@@ -112,10 +134,10 @@ class MyDemoPage extends StatelessWidget {
     /// [CheckoutPageFooter] widget that just needs the corresponding links
     const _footer = CheckoutPageFooter(
       // These are example url links only. Use your own links in live code
-      privacyLink: 'https://stripe.com/privacy',
-      termsLink: 'https://stripe.com/payment-terms/legal',
-      note: 'Powered By Not_Stripe',
-      noteLink: 'https://stripe.com/',
+      privacyLink: 'https://[Credit Processor].com/privacy',
+      termsLink: 'https://[Credit Processor].com/payment-terms/legal',
+      note: 'Powered By [Credit Processor]',
+      noteLink: 'https://[Credit Processor].com/',
     );
 
     /// OPTIONAL: A function for the back button
@@ -127,22 +149,29 @@ class MyDemoPage extends StatelessWidget {
     Function? _onBack = Navigator.of(context).canPop()
         ? () => Navigator.of(context).pop()
         : null;
-
+    // return const Scaffold(
+    //   body: WebViewStructure(
+    //     allowSideBySide: true,
+    //   ),
+    // );
     // Put it all together
     return Scaffold(
       appBar: null,
       body: CheckoutPage(
-        priceItems: _priceItems,
-        payToName: _payToName,
-        displayNativePay: !kIsWeb,
-        onNativePay: () => _nativePayClicked(context),
-        displayCashPay: true,
-        onCashPay: () => _cashPayClicked(context),
-        isApple: _isApple,
-        onCardPay: (results) => _creditPayClicked(results),
-        onBack: _onBack,
-        payBtnKey: _payBtnKey,
-        displayTestData: true,
+        data: CheckoutData(
+          priceItems: _priceItems,
+          payToName: _payToName,
+          displayNativePay: !kIsWeb,
+          onNativePay: (checkoutResults) => _nativePayClicked(context),
+          onCashPay: (checkoutResults) => _cashPayClicked(context),
+          isApple: _isApple,
+          onCardPay: (paymentInfo, checkoutResults) =>
+              _creditPayClicked(paymentInfo, checkoutResults),
+          onBack: _onBack,
+          payBtnKey: _payBtnKey,
+          displayTestData: true,
+          taxRate: 0.07,
+        ),
         footer: _footer,
       ),
     );

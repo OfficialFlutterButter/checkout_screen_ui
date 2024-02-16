@@ -8,7 +8,7 @@ A Widget representing a checkout screen that accepts native and credit card paym
 
 In the `pubspec.yaml` of your flutter project, add the following dependency:
  ``` yaml dependencies:
- checkout_ui_screen: ^0.1.3
+ checkout_ui_screen: ^1.0.0
 ```
 Import it to each file you use it in:
  ``` dart
@@ -27,17 +27,27 @@ final List<PriceItem> _priceItems = [
     PriceItem(name: 'Product A', quantity: 1, totalPriceCents: 5200),
     PriceItem(name: 'Product B', quantity: 2, totalPriceCents: 8599),
     PriceItem(name: 'Product C', quantity: 1, totalPriceCents: 2499),
-    PriceItem(name: 'Delivery Charge', quantity: 1, totalPriceCents: 1599),
+    PriceItem(name: 'Delivery Charge', quantity: 1, totalPriceCents: 1599, canEditQuantity: false),
 ];
 
 // build the checkout ui
 CheckoutPage(
     priceItems: _priceItems,
+    taxRate: 0.07, // 7% tax rate
     payToName: 'Vendor Name Here',
     displayNativePay: true,
-    onNativePay: () => print('Native Pay Clicked'),
+    onNativePay: (checkoutResults) => print('Native Pay Clicked'),
     isApple: Platform.isIOS,
-    onCardPay: (results) => print( 'Credit card form submitted with results: $results'),
+    onCardPay: (paymentInfo, checkoutResults){
+        // add your own logic to handle the payment
+
+        // paymentInfo: contains information related to the card being used
+
+        // checkoutResults: contains the final list of items and costs the user expects to pay.
+        // NOTE: the user has the ability to change the quantity of items in the checkout screen
+        // so the final list of items and costs may differ from the original list of items and costs
+        // you provided to the checkout screen. MAKE SURE to handle this in your payment logic.
+    } ,
     onBack: ()=> Navigator.of(context).pop(),
 );
 ```
