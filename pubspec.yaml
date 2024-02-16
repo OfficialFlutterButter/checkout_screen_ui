@@ -1,16 +1,17 @@
 name: checkout_screen_ui
 description: A pre built UI representing a checkout screen that is meant to be coupled with your own logic.
 version: 0.1.3
-homepage: https://github.com/jonesw5/checkout_screen_ui
+repository: https://github.com/OfficialFlutterButter/checkout_screen_ui
+issue_tracker: https://github.com/OfficialFlutterButter/checkout_screen_ui/issues
 environment:
-  sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=1.17.0"
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   text_form_field_wrapper: ^1.0.0
-  url_launcher: ^6.0.13 
+  url_launcher: ^6.2.4
 
 dev_dependencies:
   flutter_test:
