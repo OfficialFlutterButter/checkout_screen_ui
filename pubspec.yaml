@@ -1,6 +1,6 @@
 name: checkout_screen_ui
 description: A pre built UI representing a checkout screen that is meant to be coupled with your own logic.
-version: 0.1.3
+version: 1.0.0
 repository: https://github.com/OfficialFlutterButter/checkout_screen_ui
 issue_tracker: https://github.com/OfficialFlutterButter/checkout_screen_ui/issues
 environment:
