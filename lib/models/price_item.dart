@@ -14,6 +14,7 @@ class PriceItem {
       this.description,
       required int quantity,
       required this.itemCostCents,
+      this.canEditQuantity = true,
       this.image})
       : _quantity = quantity;
 
@@ -25,11 +26,14 @@ class PriceItem {
   /// ex: 'additional information about product'
   final String? description;
 
+  final bool canEditQuantity;
+
   /// the quantity of the item to be display at checkout
   /// ex: 1
   int _quantity;
   int get quantity => _quantity;
   set quantity(int value) {
+    if (canEditQuantity == false) return;
     _quantity = value;
     // uiState?.update();
   }
@@ -45,6 +49,11 @@ class PriceItem {
   /// getter for the price as string with no dollar sign included
   /// ex: returns => '12.99'
   String get price => (totalPriceCents.toDouble() / 100.00).toStringAsFixed(2);
+
+  int get itemPrice => itemCostCents;
+
+  String get itemPriceString =>
+      (itemCostCents.toDouble() / 100.00).toStringAsFixed(2);
 
   @override
   String toString() {

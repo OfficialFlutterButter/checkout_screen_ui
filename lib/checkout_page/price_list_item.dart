@@ -19,7 +19,9 @@ class _PriceListItem extends StatefulWidget {
 class _PriceListItemState extends State<_PriceListItem> {
   bool open = false;
 
-  void onLongPress() {
+  void onTap() {
+    if (widget.priceItem.canEditQuantity == false) return;
+    widget._viewModel.closeAllDropDowns(widget.priceItem);
     setState(() {
       open = !open;
     });
@@ -38,6 +40,7 @@ class _PriceListItemState extends State<_PriceListItem> {
   }
 
   void onClickDecrement() {
+    if (widget.priceItem.quantity <= 0) return;
     widget.priceItem.quantity--;
     widget._viewModel.onItemsUpdated();
     setState(() {});
@@ -56,7 +59,7 @@ class _PriceListItemState extends State<_PriceListItem> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: GestureDetector(
-          onLongPress: () => onLongPress(),
+          onTap: () => onTap(),
           child: Column(
             children: [
               Row(
@@ -81,7 +84,7 @@ class _PriceListItemState extends State<_PriceListItem> {
                   Expanded(
                     flex: 1,
                     child: Text(
-                      '\$${widget.priceItem.price}',
+                      '\$${widget.priceItem.itemPriceString}',
                       textAlign: TextAlign.end,
                     ),
                   ),

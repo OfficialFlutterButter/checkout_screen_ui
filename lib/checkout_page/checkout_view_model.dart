@@ -73,4 +73,22 @@ class _CheckoutViewModel {
       subtotalCents: data.subtotalCents,
     ));
   }
+
+  Map<PriceItem, GlobalKey<_PriceListItemState>>? _priceItemKeys;
+  Map<PriceItem, GlobalKey<_PriceListItemState>> get priceItemKeys {
+    _priceItemKeys ??= data.priceItems.asMap().map((index, priceItem) =>
+        MapEntry(priceItem, GlobalKey<_PriceListItemState>()));
+
+    return _priceItemKeys!;
+  }
+
+  void closeAllDropDowns(PriceItem priceItem) {
+    // iterate through the keys and close all the dropdowns except the one
+    // that was clicked
+    priceItemKeys.forEach((key, value) {
+      if (key != priceItem) {
+        value.currentState?.close();
+      }
+    });
+  }
 }

@@ -15,7 +15,6 @@ class CheckoutData {
       this.displayNativePay = false,
       this.isApple = false,
       this.onNativePay,
-      this.displayCashPay = false,
       this.onCashPay,
       required this.onCardPay,
       this.displayEmail = true,
@@ -54,7 +53,7 @@ class CheckoutData {
   final void Function(CheckOutResult checkOutResult)? onNativePay;
 
   /// Should the cash option appear?
-  final bool displayCashPay;
+  bool get displayCashPay => onCashPay != null;
 
   /// Provide a function that should trigger if the user presses the cash
   /// option. Can be left null if Cash option is not to be displayed
@@ -112,6 +111,14 @@ class CheckoutData {
   final bool displayTestData;
 
   /// The tax rate to be applied to the total price
+  ///
+  /// default is null for no tax
+  ///
+  /// examples:
+  ///  - 0.07 for 7%
+  ///  - 0.20 for 20%
+  ///  - null for no tax
+  ///  - 5.00 for 500%
   final double? taxRate;
 
   int get totalTaxCents {

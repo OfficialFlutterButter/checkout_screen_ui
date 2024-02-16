@@ -104,7 +104,11 @@ class MyDemoPage extends StatelessWidget {
       PriceItem(name: 'Product A', quantity: 1, itemCostCents: 5200),
       PriceItem(name: 'Product B', quantity: 2, itemCostCents: 8599),
       PriceItem(name: 'Product C', quantity: 1, itemCostCents: 2499),
-      PriceItem(name: 'Delivery Charge', quantity: 1, itemCostCents: 1599),
+      PriceItem(
+          name: 'Delivery Charge',
+          quantity: 1,
+          itemCostCents: 1599,
+          canEditQuantity: false),
     ];
 
     /// REQUIRED: A name representing the receiver of the funds from user
@@ -159,7 +163,6 @@ class MyDemoPage extends StatelessWidget {
           payToName: _payToName,
           displayNativePay: !kIsWeb,
           onNativePay: (checkoutResults) => _nativePayClicked(context),
-          displayCashPay: true,
           onCashPay: (checkoutResults) => _cashPayClicked(context),
           isApple: _isApple,
           onCardPay: (paymentInfo, checkoutResults) =>

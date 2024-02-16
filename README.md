@@ -27,7 +27,7 @@ final List<PriceItem> _priceItems = [
     PriceItem(name: 'Product A', quantity: 1, totalPriceCents: 5200),
     PriceItem(name: 'Product B', quantity: 2, totalPriceCents: 8599),
     PriceItem(name: 'Product C', quantity: 1, totalPriceCents: 2499),
-    PriceItem(name: 'Delivery Charge', quantity: 1, totalPriceCents: 1599),
+    PriceItem(name: 'Delivery Charge', quantity: 1, totalPriceCents: 1599, canEditQuantity: false),
 ];
 
 // build the checkout ui
