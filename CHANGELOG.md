@@ -1,3 +1,7 @@
+## 1.0.1- Mar 24, 2024
+- Added option to hide phone input from CreditCardForm
+- Added option to change credit form submit button text
+- Adjusted ReadMe
 ## 1.0.0- Feb 16, 2024
 - Adds user control over item counts
 - Adds an optional tax rate

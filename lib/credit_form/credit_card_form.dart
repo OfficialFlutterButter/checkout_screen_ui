@@ -20,6 +20,8 @@ class CreditCardForm extends StatefulWidget {
     this.payBtnKey,
     this.formKey,
     this.displayTestData = false,
+    this.displayPhone = true,
+    this.submitLabel = 'Pay',
   }) : super(key: key);
 
   /// If you have a List of Countries that you would like to use to override the
@@ -60,6 +62,10 @@ class CreditCardForm extends StatefulWidget {
   /// You will need to provide a general [FormState] key to control, validate
   /// and save the form data based on your needs.
   final GlobalKey<FormState>? formKey;
+
+  final bool displayPhone;
+
+  final String submitLabel;
 
   /// If you would like to display test data during your development, a dataset
   /// based on Stripe test data is provided. To use this date, simply mark this
@@ -362,44 +368,47 @@ class _CreditCardFormState extends State<CreditCardForm> {
           const SizedBox(
             height: 30,
           ),
-          const Row(
-            children: [
-              Padding(
-                padding: EdgeInsets.fromLTRB(4, 16, 0, 4),
-                child: Text('Phone Number'),
-              ),
-            ],
-          ),
-          TextFormFieldWrapper(
-            position: TextFormFieldPosition.alone,
-            formField: TextFormField(
-              controller: cPhone,
-              keyboardType: TextInputType.number,
-              validator: (input) {
-                input = input!.replaceAll('-', '');
-                if (PhoneRegexValidator().isValid(input)) return null;
-                return 'Enter a valid phone number';
-              },
-              inputFormatters: [
-                MaskedTextInputFormatter(
-                  mask: 'xxx-xxx-xxxx',
-                  separator: '-',
-                )
+          if (widget.displayPhone)
+            const Row(
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(4, 16, 0, 4),
+                  child: Text('Phone Number'),
+                ),
               ],
-              decoration: const InputDecoration(
-                // hintText: 'Phone',
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 5, horizontal: 16),
-                border: InputBorder.none,
+            ),
+          if (widget.displayPhone)
+            TextFormFieldWrapper(
+              position: TextFormFieldPosition.alone,
+              formField: TextFormField(
+                controller: cPhone,
+                keyboardType: TextInputType.number,
+                validator: (input) {
+                  input = input!.replaceAll('-', '');
+                  if (PhoneRegexValidator().isValid(input)) return null;
+                  return 'Enter a valid phone number';
+                },
+                inputFormatters: [
+                  MaskedTextInputFormatter(
+                    mask: 'xxx-xxx-xxxx',
+                    separator: '-',
+                  )
+                ],
+                decoration: const InputDecoration(
+                  // hintText: 'Phone',
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+                  border: InputBorder.none,
+                ),
               ),
             ),
-          ),
           const SizedBox(
             height: 30,
           ),
           CardPayButton(
             key: payBtnKey,
             initStatus: CardPayButtonStatus.ready,
+            text: widget.submitLabel,
             onPressed: () {
               bool result = _formKey.currentState!.validate();
               if (result) {
@@ -412,7 +421,9 @@ class _CreditCardFormState extends State<CreditCardForm> {
                     name: cName.text,
                     country: cCountry.text,
                     zip: cZip.text,
-                    phone: '+1${cPhone.text.replaceAll('-', '')}'));
+                    phone: cPhone.text.isEmpty
+                        ? ''
+                        : '+1${cPhone.text.replaceAll('-', '')}'));
               }
             },
           ),

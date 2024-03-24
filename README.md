@@ -1,5 +1,7 @@
 
-A Widget representing a checkout screen that accepts native and credit card payments along with a button for cash payments if you system has 'in person' payments. This is a UI only widget and is meant to compliment whatever third party transaction api system you are using.
+A Widget representing a checkout screen that accepts native and credit card payments along with a button for cash payments if your system has 'in person' payments. This is a UI only widget and is meant to compliment whatever third party transaction api system you are using.
+
+Includes a CreditCardForm widget that allows you to utilize only the credit card form without the rest of the checkout screen if desired.
 
 
 ![A gif demonstrating the radio group in action.](./demo/checkout_screen_ui_demo.gif)

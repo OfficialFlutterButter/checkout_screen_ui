@@ -18,9 +18,11 @@ class CardPayButton extends StatefulWidget {
     Key? key,
     required this.onPressed,
     this.initStatus,
+    required this.text,
   }) : super(key: key);
   final CardPayButtonStatus? initStatus;
   final Function() onPressed;
+  final String text;
 
   @override
   CardPayButtonState createState() => CardPayButtonState();
@@ -52,7 +54,7 @@ class CardPayButtonState extends State<CardPayButton> {
       : (shouldBeRed ? Colors.red : Colors.green);
 
   Widget get displayedWidget {
-    Widget w = Text('Pay',
+    Widget w = Text(widget.text,
         style: TextStyle(color: Colors.grey.shade200, fontSize: 20.0));
 
     switch (status) {
