@@ -10,7 +10,7 @@ Includes a CreditCardForm widget that allows you to utilize only the credit card
 
 In the `pubspec.yaml` of your flutter project, add the following dependency:
  ``` yaml dependencies:
- checkout_ui_screen: ^1.0.0
+ checkout_screen_ui: ^1.0.1
 ```
 Import it to each file you use it in:
  ``` dart
