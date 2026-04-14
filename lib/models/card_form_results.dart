@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Class that houses all expected form data from the checkout ui
 ///
 /// !DO NOT SAVE THIS DATA TO A LOG FILE OR PRINT IT OUT IN LIVE CODE
@@ -44,8 +46,26 @@ class CardFormResults {
   /// getter to retrieve the expiration month from the expiration string
   int get expMonth => int.parse(cardExpiry.split('/')[0]);
 
+  /// In debug builds, includes all field values for developer convenience.
+  /// In profile and release builds, returns a redacted string (safe for casual logs).
   @override
   String toString() {
-    return 'CardFormResults [$email , $cardNumber, $cardExpiry, $cardSec, $name, $country, $zip , $phone]';
+    if (kDebugMode) {
+      return 'CardFormResults[$email, $cardNumber, $cardExpiry, $cardSec, '
+          '$name, $country, $zip, $phone]';
+    }
+    return 'CardFormResults(redacted: email=${_maskEmail(email)}, '
+        'cardNumber=***, cardExpiry=**, cardSec=***, name=***, '
+        'country=$country, zip=***, phone=***)';
+  }
+
+  static String _maskEmail(String e) {
+    if (e.isEmpty) return '';
+    final at = e.indexOf('@');
+    if (at <= 0) return '***';
+    final local = e.substring(0, at);
+    final domain = e.substring(at);
+    final shown = local.length <= 1 ? '*' : '${local[0]}***';
+    return '$shown$domain';
   }
 }

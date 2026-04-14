@@ -28,7 +28,12 @@ class CheckoutData {
       this.formKey,
       this.cashPrice,
       this.taxRate,
-      this.displayTestData = false});
+      this.displayTestData = false,
+      this.displayPhone = true,
+      this.submitLabel = 'Pay',
+      this.zipValidator,
+      this.phoneValidator,
+      this.formatE164Phone});
 
   /// The list of items with prices [PriceItem]'s to be shown within the
   /// drop down banner on the checkout page
@@ -109,6 +114,24 @@ class CheckoutData {
   /// true.
   /// WARNING: Make sure to mark false for any release
   final bool displayTestData;
+
+  /// When false, the phone field is hidden on the card form.
+  final bool displayPhone;
+
+  /// Label for the card pay button (e.g. "Pay" or "Subscribe").
+  final String submitLabel;
+
+  /// Optional override for ZIP/postal validation (default: 5-digit US-style).
+  final StringValidator? zipValidator;
+
+  /// Optional override for phone validation when [displayPhone] is true.
+  final StringValidator? phoneValidator;
+
+  /// Optional E.164 formatter for [CardFormResults.phone] from the masked field.
+  final String Function(String displayPhone)? formatE164Phone;
+
+  /// Resolved country list for the card form.
+  List<String> get countries => countriesOverride ?? const ['United States'];
 
   /// The tax rate to be applied to the total price
   ///

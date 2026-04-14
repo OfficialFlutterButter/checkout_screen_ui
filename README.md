@@ -3,54 +3,73 @@ A Widget representing a checkout screen that accepts native and credit card paym
 
 Includes a CreditCardForm widget that allows you to utilize only the credit card form without the rest of the checkout screen if desired.
 
+## Security and PCI scope
 
-![A gif demonstrating the radio group in action.](./demo/checkout_screen_ui_demo.gif)
+This package is **UI only**. Card data exists in memory inside Flutter text controllers while the user types. **Never** log `CardFormResults` or raw PAN/CVC in production. In **release** and **profile** builds, `CardFormResults.toString()` is redacted; in **debug** builds it includes full values for developer convenience—still do not persist it or ship debug logs that contain card data. Send card data only to your PCI-compliant processor (for example Stripe) over TLS, following their integration guidance.
 
 ## Installation
 
-In the `pubspec.yaml` of your flutter project, add the following dependency:
- ``` yaml dependencies:
- checkout_screen_ui: ^1.0.1
+In the `pubspec.yaml` of your Flutter project, add:
+
+```yaml
+dependencies:
+  checkout_screen_ui: ^1.1.0
 ```
-Import it to each file you use it in:
- ``` dart
- import 'package:checkout_screen_ui/checkout_page.dart';
- ```
+
+Import the barrel (recommended) or specific libraries:
+
+```dart
+import 'package:checkout_screen_ui/checkout_screen_ui.dart';
+// or
+import 'package:checkout_screen_ui/checkout_ui.dart';
+```
 
 ## Usage
 
-### Example 1
-
-This example is a very basic checkout page.
+The main entry point is `CheckoutPage` with a `CheckoutData` object:
 
 ```dart
-/// Build a list of what the user is buying
-final List<PriceItem> _priceItems = [
-    PriceItem(name: 'Product A', quantity: 1, totalPriceCents: 5200),
-    PriceItem(name: 'Product B', quantity: 2, totalPriceCents: 8599),
-    PriceItem(name: 'Product C', quantity: 1, totalPriceCents: 2499),
-    PriceItem(name: 'Delivery Charge', quantity: 1, totalPriceCents: 1599, canEditQuantity: false),
+final List<PriceItem> priceItems = [
+  PriceItem(name: 'Product A', quantity: 1, itemCostCents: 5200),
+  PriceItem(name: 'Product B', quantity: 2, itemCostCents: 8599),
 ];
 
-// build the checkout ui
 CheckoutPage(
-    priceItems: _priceItems,
-    taxRate: 0.07, // 7% tax rate
-    payToName: 'Vendor Name Here',
+  data: CheckoutData(
+    priceItems: priceItems,
+    payToName: 'Vendor Name',
+    taxRate: 0.07,
     displayNativePay: true,
-    onNativePay: (checkoutResults) => print('Native Pay Clicked'),
     isApple: Platform.isIOS,
-    onCardPay: (paymentInfo, checkoutResults){
-        // add your own logic to handle the payment
+    onNativePay: (result) { /* ... */ },
+    onCashPay: (result) { /* ... */ },
+    onCardPay: (card, result) {
+      // card: CardFormResults — never log in production
+      // result: CheckOutResult — items, subtotal, tax, total in cents
+    },
+    onBack: () => Navigator.of(context).pop(),
+  ),
+  footer: CheckoutPageFooter(
+    termsLink: 'https://example.com/terms',
+    privacyLink: 'https://example.com/privacy',
+  ),
+);
+```
 
-        // paymentInfo: contains information related to the card being used
+Optional theming:
 
-        // checkoutResults: contains the final list of items and costs the user expects to pay.
-        // NOTE: the user has the ability to change the quantity of items in the checkout screen
-        // so the final list of items and costs may differ from the original list of items and costs
-        // you provided to the checkout screen. MAKE SURE to handle this in your payment logic.
-    } ,
-    onBack: ()=> Navigator.of(context).pop(),
+```dart
+MaterialApp(
+  theme: ThemeData(
+    extensions: const [
+      CheckoutTheme(
+        chargeAmountColor: Colors.teal,
+        nativePayBackgroundColor: Colors.black,
+        nativePayForegroundColor: Colors.white,
+      ),
+    ],
+  ),
+  // ...
 );
 ```
 

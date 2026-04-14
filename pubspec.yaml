@@ -1,22 +1,25 @@
 name: checkout_screen_ui
 description: A pre built UI representing a checkout screen that is meant to be coupled with your own logic.
-version: 1.0.1
+version: 1.1.0
 repository: https://github.com/OfficialFlutterButter/checkout_screen_ui
 issue_tracker: https://github.com/OfficialFlutterButter/checkout_screen_ui/issues
 environment:
-  sdk: ">=3.0.0 <4.0.0"
-  flutter: ">=3.0.0"
+  sdk: ">=3.10.0 <4.0.0"
+  flutter: ">=3.38.0"
 
 dependencies:
   flutter:
     sdk: flutter
   text_form_field_wrapper: ^1.0.0
-  url_launcher: ^6.2.4
+  url_launcher: ^6.3.2
+  # Ensures a url_launcher_web that depends on package:web >=0.5 (required for
+  # Dart 3.10+ / Flutter web compile). url_launcher alone can resolve to 2.2.x + web 0.3.x.
+  url_launcher_web: ^2.4.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^1.0.0
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -26,6 +29,3 @@ flutter:
 
   assets:
     - assets/images/
-
-    
-

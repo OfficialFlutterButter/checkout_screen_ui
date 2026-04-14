@@ -32,13 +32,15 @@ class _CheckoutViewModel {
   }
 
   ScrollController? _scrollController;
+
+  /// Set by [_CheckoutScrollHostState]; must not be lazily created elsewhere.
   ScrollController get scrollController {
-    _scrollController ??= ScrollController(
-        initialScrollOffset: (data.priceItems.length * 50) + 165);
+    assert(_scrollController != null,
+        'ScrollController must be attached before use');
     return _scrollController!;
   }
 
-  void setScrollController(ScrollController controller) {
+  void attachScrollController(ScrollController controller) {
     _scrollController = controller;
   }
 

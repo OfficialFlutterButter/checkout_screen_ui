@@ -15,13 +15,13 @@ class CardPayButton extends StatefulWidget {
   /// Button representing the option to submit the credit card info and start
   /// the process of a payment.
   const CardPayButton({
-    Key? key,
+    super.key,
     required this.onPressed,
     this.initStatus,
     required this.text,
-  }) : super(key: key);
+  });
   final CardPayButtonStatus? initStatus;
-  final Function() onPressed;
+  final void Function() onPressed;
   final String text;
 
   @override
@@ -31,7 +31,7 @@ class CardPayButton extends StatefulWidget {
 class CardPayButtonState extends State<CardPayButton> {
   CardPayButtonStatus status = CardPayButtonStatus.not_ready;
 
-  updateStatus(CardPayButtonStatus newStatus) {
+  void updateStatus(CardPayButtonStatus newStatus) {
     setState(() {
       status = newStatus;
     });

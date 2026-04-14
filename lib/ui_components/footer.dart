@@ -11,12 +11,11 @@ class CheckoutPageFooter extends StatelessWidget {
   /// of service page. There is also the ability to add a foot note that can be
   /// also be linked to a publicly accessible webpage.
   const CheckoutPageFooter(
-      {Key? key,
+      {super.key,
       required this.termsLink,
       required this.privacyLink,
       this.note,
-      this.noteLink})
-      : super(key: key);
+      this.noteLink});
 
   /// url string to the expected publicly accessible webpage displaying your
   /// terms of service
@@ -33,13 +32,18 @@ class CheckoutPageFooter extends StatelessWidget {
   /// if they click on the footnote, add the url string here.
   final String? noteLink;
 
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (!await canLaunchUrl(uri)) {
+      throw StateError('Could not launch $url');
+    }
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
   @override
   Widget build(BuildContext context) {
-    bool displayNote = (noteLink != null || note != null);
-    String noteText = '';
-    if (displayNote) {
-      noteText = note ?? noteLink!;
-    }
+    final bool displayNote = (noteLink != null || note != null);
+    final String noteText = displayNote ? (note ?? noteLink!) : '';
 
     return Column(
       children: [
@@ -53,10 +57,7 @@ class CheckoutPageFooter extends StatelessWidget {
               TextButton(
                 onPressed: () async {
                   if (noteLink != null) {
-                    final uri = Uri(path: noteLink!);
-                    await canLaunchUrl(uri)
-                        ? await launchUrl(uri)
-                        : throw 'Could not launch $noteLink';
+                    await _openUrl(noteLink!);
                   }
                 },
                 child: Text(noteText),
@@ -71,24 +72,14 @@ class CheckoutPageFooter extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextButton(
-              onPressed: () async {
-                final uri = Uri(path: termsLink);
-                await canLaunchUrl(uri)
-                    ? await launchUrl(uri)
-                    : throw 'Could not launch $termsLink';
-              },
+              onPressed: () => _openUrl(termsLink),
               child: const Text('Terms'),
             ),
             const SizedBox(
               width: 10,
             ),
             TextButton(
-                onPressed: () async {
-                  final uri = Uri(path: privacyLink);
-                  await canLaunchUrl(uri)
-                      ? await launchUrl(uri)
-                      : throw 'Could not launch $privacyLink';
-                },
+                onPressed: () => _openUrl(privacyLink),
                 child: const Text('Privacy')),
           ],
         ),

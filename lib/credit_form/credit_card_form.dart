@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:text_form_field_wrapper/text_form_field_wrapper.dart';
 import '../models/card_form_results.dart';
@@ -9,7 +10,7 @@ class CreditCardForm extends StatefulWidget {
   /// The CreditCardForm is a stateful widget containing a form and fields
   /// necessary to complete a typical credit card transaction
   const CreditCardForm({
-    Key? key,
+    super.key,
     this.countries = const ['United States'],
     this.initEmail = '',
     this.initBuyerName = '',
@@ -22,7 +23,10 @@ class CreditCardForm extends StatefulWidget {
     this.displayTestData = false,
     this.displayPhone = true,
     this.submitLabel = 'Pay',
-  }) : super(key: key);
+    this.zipValidator,
+    this.phoneValidator,
+    this.formatE164Phone,
+  });
 
   /// If you have a List of Countries that you would like to use to override the
   /// currently provide list of 1, being 'United States', add the list here.
@@ -70,15 +74,25 @@ class CreditCardForm extends StatefulWidget {
   /// If you would like to display test data during your development, a dataset
   /// based on Stripe test data is provided. To use this date, simply mark this
   /// true.
-  /// WARNING: Make sure to mark false for any release
+  /// WARNING: Make sure to mark false for any release. In release builds,
+  /// test data is never applied even when this is true.
   final bool displayTestData;
 
+  /// Optional override for ZIP validation (default: 5-digit US-style).
+  final StringValidator? zipValidator;
+
+  /// Optional override for phone validation when [displayPhone] is true.
+  final StringValidator? phoneValidator;
+
+  /// Optional E.164 formatter for [CardFormResults.phone] from the display field.
+  final String Function(String displayPhone)? formatE164Phone;
+
   @override
-  _CreditCardFormState createState() => _CreditCardFormState();
+  State<CreditCardForm> createState() => _CreditCardFormState();
 }
 
 class _CreditCardFormState extends State<CreditCardForm> {
-  late final GlobalKey<FormState> _formKey; // = GlobalKey<FormState>();
+  late final GlobalKey<FormState> _formKey;
 
   late final GlobalKey<CardPayButtonState>? payBtnKey;
 
@@ -88,14 +102,25 @@ class _CreditCardFormState extends State<CreditCardForm> {
 
   int chosenCountryIndex = 0;
 
-  TextEditingController cEmail = TextEditingController();
-  TextEditingController cCardNumber = TextEditingController();
-  TextEditingController cExpiry = TextEditingController();
-  TextEditingController cSecurity = TextEditingController();
-  TextEditingController cName = TextEditingController();
-  TextEditingController cCountry = TextEditingController();
-  TextEditingController cZip = TextEditingController();
-  TextEditingController cPhone = TextEditingController();
+  late final TextEditingController cEmail;
+  late final TextEditingController cCardNumber;
+  late final TextEditingController cExpiry;
+  late final TextEditingController cSecurity;
+  late final TextEditingController cName;
+  late final TextEditingController cCountry;
+  late final TextEditingController cZip;
+  late final TextEditingController cPhone;
+
+  bool get _applyTestData => kDebugMode && widget.displayTestData;
+
+  /// MM/YY for the same calendar month one year ahead (debug test prefill).
+  static String _oneYearAheadExpiryMmYy() {
+    final d = DateTime.now();
+    final next = DateTime(d.year + 1, d.month, 1);
+    final mm = next.month.toString().padLeft(2, '0');
+    final yy = (next.year % 100).toString().padLeft(2, '0');
+    return '$mm/$yy';
+  }
 
   @override
   void initState() {
@@ -106,41 +131,109 @@ class _CreditCardFormState extends State<CreditCardForm> {
       _formKey = GlobalKey<FormState>();
     }
 
-    cCountry.text = widget.countries[0];
+    cEmail = TextEditingController();
+    cCardNumber = TextEditingController();
+    cExpiry = TextEditingController();
+    cSecurity = TextEditingController();
+    cName = TextEditingController();
+    cCountry = TextEditingController();
+    cZip = TextEditingController();
+    cPhone = TextEditingController();
+
+    cCountry.text = widget.countries.isNotEmpty ? widget.countries[0] : '';
     payBtnKey = widget.payBtnKey;
 
-    if (widget.displayTestData) {
+    _applyPrefillFromWidget(resetTestBlock: true);
+  }
+
+  void _applyPrefillFromWidget({required bool resetTestBlock}) {
+    if (_applyTestData) {
       cEmail.text = 'example@example.com';
       cName.text = 'John Doe';
       cCardNumber.text = '4242 4242 4242 4242';
-      cExpiry.text = '01/24';
+      cExpiry.text = _oneYearAheadExpiryMmYy();
       cSecurity.text = '424';
       cZip.text = '42424';
       cPhone.text = '555-555-5555';
+      return;
+    }
+
+    if (resetTestBlock) {
+      if (widget.initEmail.isNotEmpty) {
+        cEmail.text = widget.initEmail;
+      }
+      if (widget.initBuyerName.isNotEmpty) {
+        cName.text = widget.initBuyerName;
+      }
+      if (widget.initPhone.isNotEmpty && widget.initPhone.length >= 10) {
+        final digits = widget.initPhone.replaceAll(RegExp(r'\D'), '');
+        if (digits.length >= 10) {
+          final d = digits.substring(0, 10);
+          cPhone.text = '${d.substring(0, 3)}-${d.substring(3, 6)}-${d.substring(6)}';
+        }
+      }
     }
   }
 
   @override
+  void didUpdateWidget(CreditCardForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.countries.isNotEmpty &&
+        chosenCountryIndex >= widget.countries.length) {
+      chosenCountryIndex = 0;
+    }
+    if (oldWidget.countries != widget.countries ||
+        oldWidget.initEmail != widget.initEmail ||
+        oldWidget.initBuyerName != widget.initBuyerName ||
+        oldWidget.initPhone != widget.initPhone ||
+        oldWidget.displayTestData != widget.displayTestData) {
+      _applyPrefillFromWidget(resetTestBlock: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    cEmail.dispose();
+    cCardNumber.dispose();
+    cExpiry.dispose();
+    cSecurity.dispose();
+    cName.dispose();
+    cCountry.dispose();
+    cZip.dispose();
+    cPhone.dispose();
+    super.dispose();
+  }
+
+  String _formatPhoneForResults() {
+    final raw = cPhone.text;
+    if (raw.isEmpty) {
+      return '';
+    }
+    if (widget.formatE164Phone != null) {
+      return widget.formatE164Phone!(raw);
+    }
+    final digits = raw.replaceAll(RegExp(r'\D'), '');
+    if (digits.isEmpty) {
+      return '';
+    }
+    return '+1$digits';
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (widget.initEmail.isNotEmpty) {
-      cEmail.text = widget.initEmail;
-    }
-    if (widget.initBuyerName.isNotEmpty) {
-      cName.text = widget.initBuyerName;
-    }
-    if (widget.initPhone.isNotEmpty) {
-      String text = widget.initPhone;
-      text = text.substring(0, 3) +
-          '-' +
-          text.substring(3, 6) +
-          '-' +
-          text.substring(6);
-      cPhone.text = text;
-    }
     return Form(
       key: _formKey,
       child: Column(
         children: [
+          if (widget.displayEmail)
+            const Row(
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(4, 16, 0, 4),
+                  child: Text('Email'),
+                ),
+              ],
+            ),
           if (widget.displayEmail)
             TextFormFieldWrapper(
               formField: TextFormField(
@@ -150,15 +243,14 @@ class _CreditCardFormState extends State<CreditCardForm> {
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value!.isNotEmpty &&
-                      EmailSubmitRegexValidator().isValid(value)) return null;
+                      EmailSubmitRegexValidator().isValid(value)) {
+                    return null;
+                  }
                   return "Invalid";
                 },
                 decoration: const InputDecoration(
                     contentPadding:
                         EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-                    prefixIcon: Text("Email"),
-                    prefixIconConstraints:
-                        BoxConstraints(minWidth: 0, minHeight: 0),
                     border: InputBorder.none),
               ),
             ),
@@ -200,7 +292,7 @@ class _CreditCardFormState extends State<CreditCardForm> {
                 border: InputBorder.none,
               ),
               onChanged: (input) {
-                CardBrand newBrand =
+                final CardBrand newBrand =
                     CardTypeRegs.findBrand(input.replaceAll(' ', ''));
                 if (brand != newBrand) {
                   setState(() {
@@ -222,7 +314,7 @@ class _CreditCardFormState extends State<CreditCardForm> {
                     controller: cExpiry,
                     keyboardType: TextInputType.number,
                     validator: (value) {
-                      if (CreditExpirySubmitRegexValidator().isValid(value!)) {
+                      if (isCreditExpiryOnOrAfterMonth(value!)) {
                         return null;
                       }
                       return "Invalid";
@@ -317,26 +409,34 @@ class _CreditCardFormState extends State<CreditCardForm> {
           ),
           TextFormFieldWrapper(
             position: TextFormFieldPosition.top,
-            formField: DropdownButtonFormField(
-              value: chosenCountryIndex,
+            formField: DropdownButtonFormField<int>(
+              key: ValueKey<int>(chosenCountryIndex),
+              initialValue: widget.countries.isEmpty
+                  ? null
+                  : chosenCountryIndex.clamp(0, widget.countries.length - 1),
               items: widget.countries
-                  .map((e) => DropdownMenuItem(
-                        child: Text(e),
-                        value: widget.countries.indexOf(e),
+                  .asMap()
+                  .entries
+                  .map((e) => DropdownMenuItem<int>(
+                        value: e.key,
+                        child: Text(e.value),
                       ))
                   .toList(),
-              // controller: cCountry,
               decoration: const InputDecoration(
                 contentPadding:
                     EdgeInsets.symmetric(vertical: 5, horizontal: 16),
                 border: InputBorder.none,
               ),
               onChanged: (widget.countries.length > 1)
-                  ? (o) => {
-                        setState(() {
-                          chosenCountryIndex = o;
-                        })
+                  ? (o) {
+                      if (o == null) {
+                        return;
                       }
+                      setState(() {
+                        chosenCountryIndex = o;
+                        cCountry.text = widget.countries[o];
+                      });
+                    }
                   : null,
             ),
           ),
@@ -346,7 +446,9 @@ class _CreditCardFormState extends State<CreditCardForm> {
               controller: cZip,
               keyboardType: TextInputType.number,
               validator: (input) {
-                if (AddressPostalSubmitRegexValidator().isValid(input!)) {
+                final StringValidator v =
+                    widget.zipValidator ?? AddressPostalSubmitRegexValidator();
+                if (v.isValid(input!)) {
                   return null;
                 }
                 return 'Enter a valid zip code';
@@ -385,7 +487,11 @@ class _CreditCardFormState extends State<CreditCardForm> {
                 keyboardType: TextInputType.number,
                 validator: (input) {
                   input = input!.replaceAll('-', '');
-                  if (PhoneRegexValidator().isValid(input)) return null;
+                  final StringValidator v =
+                      widget.phoneValidator ?? PhoneRegexValidator();
+                  if (v.isValid(input)) {
+                    return null;
+                  }
                   return 'Enter a valid phone number';
                 },
                 inputFormatters: [
@@ -395,7 +501,6 @@ class _CreditCardFormState extends State<CreditCardForm> {
                   )
                 ],
                 decoration: const InputDecoration(
-                  // hintText: 'Phone',
                   contentPadding:
                       EdgeInsets.symmetric(vertical: 5, horizontal: 16),
                   border: InputBorder.none,
@@ -405,27 +510,29 @@ class _CreditCardFormState extends State<CreditCardForm> {
           const SizedBox(
             height: 30,
           ),
-          CardPayButton(
-            key: payBtnKey,
-            initStatus: CardPayButtonStatus.ready,
-            text: widget.submitLabel,
-            onPressed: () {
-              bool result = _formKey.currentState!.validate();
-              if (result) {
-                _formKey.currentState!.save();
-                widget.onCardPay(CardFormResults(
-                    email: cEmail.text,
-                    cardNumber: cCardNumber.text.replaceAll(' ', ''),
-                    cardExpiry: cExpiry.text,
-                    cardSec: cSecurity.text,
-                    name: cName.text,
-                    country: cCountry.text,
-                    zip: cZip.text,
-                    phone: cPhone.text.isEmpty
-                        ? ''
-                        : '+1${cPhone.text.replaceAll('-', '')}'));
-              }
-            },
+          Semantics(
+            button: true,
+            label: widget.submitLabel,
+            child: CardPayButton(
+              key: payBtnKey,
+              initStatus: CardPayButtonStatus.ready,
+              text: widget.submitLabel,
+              onPressed: () {
+                final bool result = _formKey.currentState!.validate();
+                if (result) {
+                  _formKey.currentState!.save();
+                  widget.onCardPay(CardFormResults(
+                      email: cEmail.text,
+                      cardNumber: cCardNumber.text.replaceAll(' ', ''),
+                      cardExpiry: cExpiry.text,
+                      cardSec: cSecurity.text,
+                      name: cName.text,
+                      country: cCountry.text,
+                      zip: cZip.text,
+                      phone: _formatPhoneForResults()));
+                }
+              },
+            ),
           ),
         ],
       ),
@@ -460,19 +567,14 @@ class CardTypeRegs {
 }
 
 class _BrandsDisplay extends StatefulWidget {
-  const _BrandsDisplay({Key? key, this.brand = CardBrand.n_a})
-      : super(key: key);
+  const _BrandsDisplay({this.brand = CardBrand.n_a});
   final CardBrand brand;
 
   @override
-  _BrandsDisplayState createState() => _BrandsDisplayState();
+  State<_BrandsDisplay> createState() => _BrandsDisplayState();
 }
 
 class _BrandsDisplayState extends State<_BrandsDisplay> {
-  bool get displayAll => (widget.brand == CardBrand.n_a);
-  int counter = 0;
-  bool isVisible = true;
-
   Widget diners = SizedBox(
     height: 15,
     width: 30,

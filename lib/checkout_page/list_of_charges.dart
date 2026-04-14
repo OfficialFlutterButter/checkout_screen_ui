@@ -21,12 +21,10 @@ class _ListOfCharges extends StatelessWidget {
       child: ListView(
         shrinkWrap: true,
         children: [
-          ..._viewModel.data.priceItems
-              .map((priceItem) => _PriceListItem(
-                  key: _viewModel.priceItemKeys[priceItem]!,
-                  priceItem: priceItem,
-                  viewModel: _viewModel))
-              .toList(),
+          ..._viewModel.data.priceItems.map((priceItem) => _PriceListItem(
+              key: _viewModel.priceItemKeys[priceItem]!,
+              priceItem: priceItem,
+              viewModel: _viewModel)),
           _TaxListItem(viewModel: _viewModel, key: _viewModel.taxListItemKey),
         ],
       ),

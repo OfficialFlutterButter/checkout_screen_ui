@@ -29,6 +29,8 @@ class _ChargeAmountDisplay extends StatefulWidget {
 class _ChargeAmountDisplayState extends State<_ChargeAmountDisplay> {
   bool isOpen = false;
 
+  ScrollController? _listeningOn;
+
   void scrollListener() {
     final bool result = (widget._viewModel.scrollController.offset <=
         (2 * widget._initHeight / 3));
@@ -39,10 +41,35 @@ class _ChargeAmountDisplayState extends State<_ChargeAmountDisplay> {
     }
   }
 
+  void _attachScrollListener() {
+    final ScrollController c = widget._viewModel.scrollController;
+    if (_listeningOn == c) {
+      return;
+    }
+    _listeningOn?.removeListener(scrollListener);
+    _listeningOn = c;
+    _listeningOn!.addListener(scrollListener);
+  }
+
   @override
   void initState() {
     super.initState();
-    widget._viewModel.scrollController.addListener(scrollListener);
+    _attachScrollListener();
+  }
+
+  @override
+  void didUpdateWidget(_ChargeAmountDisplay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget._viewModel.scrollController != widget._viewModel.scrollController ||
+        oldWidget._initHeight != widget._initHeight) {
+      _attachScrollListener();
+    }
+  }
+
+  @override
+  void dispose() {
+    _listeningOn?.removeListener(scrollListener);
+    super.dispose();
   }
 
   void onUpdate() {
@@ -71,8 +98,11 @@ class _ChargeAmountDisplayState extends State<_ChargeAmountDisplay> {
           const Text('Charge Amount '),
           Text(
             '\$${widget._viewModel.data.totalPrice}',
-            style: const TextStyle(
-                color: Colors.green, fontSize: 24, fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: CheckoutTheme.of(context).chargeAmountColor ??
+                    Colors.green,
+                fontSize: 24,
+                fontWeight: FontWeight.bold),
           ),
           Text(isOpen ? 'Hide Details' : 'View Details',
               style: const TextStyle(fontSize: 12)),

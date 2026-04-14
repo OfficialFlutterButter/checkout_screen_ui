@@ -169,14 +169,59 @@ class PhoneSubmitRegexValidator extends RegexValidator {
                 r'(^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$)');
 }
 
-class CreditNumberSubmitRegexValidator extends RegexValidator {
-  CreditNumberSubmitRegexValidator()
-      : super(regexSource: r'^\d{4}\s\d{4}\s\d{4}\s\d{4}$');
+/// Returns true when digits-only input is consistent with an Amex PAN prefix.
+bool isLikelyAmexCardDigits(String digitsOnly) {
+  return digitsOnly.startsWith('34') || digitsOnly.startsWith('37');
 }
 
+/// Visa/MC-style 16-digit groups (4-4-4-4) or Amex 15-digit (4-6-5), spaces included.
+class CreditNumberSubmitRegexValidator implements StringValidator {
+  CreditNumberSubmitRegexValidator();
+
+  static final RegExp _pan16 = RegExp(r'^\d{4} \d{4} \d{4} \d{4}$');
+  static final RegExp _amex15 = RegExp(r'^\d{4} \d{6} \d{5}$');
+
+  @override
+  bool isValid(String value) {
+    final trimmed = value.trim();
+    if (_pan16.hasMatch(trimmed)) {
+      return true;
+    }
+    if (_amex15.hasMatch(trimmed)) {
+      final digits = trimmed.replaceAll(RegExp(r'\D'), '');
+      return isLikelyAmexCardDigits(digits);
+    }
+    return false;
+  }
+}
+
+/// Expiration in MM/YY with slash (matches masked field output).
 class CreditExpirySubmitRegexValidator extends RegexValidator {
   CreditExpirySubmitRegexValidator()
-      : super(regexSource: r'^(0[1-9]|1[0-2])\/?[0-2][0-9]|3[0-1]$');
+      : super(regexSource: r'^(0[1-9]|1[0-2])\/(\d{2})$');
+}
+
+/// True when [value] is valid MM/YY and the expiry month is still current or in
+/// the future relative to [at] (defaults to [DateTime.now]). Cards are treated
+/// as valid through the **last day** of the printed month.
+///
+/// Two-digit years are interpreted as **20YY** (common for payment UIs).
+bool isCreditExpiryOnOrAfterMonth(String value, {DateTime? at}) {
+  if (!CreditExpirySubmitRegexValidator().isValid(value)) {
+    return false;
+  }
+  final parts = value.split('/');
+  final month = int.parse(parts[0], radix: 10);
+  final yy = int.parse(parts[1], radix: 10);
+  final fullYear = 2000 + yy;
+  final now = at ?? DateTime.now();
+  if (fullYear > now.year) {
+    return true;
+  }
+  if (fullYear < now.year) {
+    return false;
+  }
+  return month >= now.month;
 }
 
 class CreditCvvSubmitRegexValidator extends RegexValidator {

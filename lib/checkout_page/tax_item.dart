@@ -54,7 +54,7 @@ class _TaxListItemState extends State<_TaxListItem> {
                 Expanded(
                   flex: 1,
                   child: Text(
-                    '\$' + taxAmount,
+                    '\$$taxAmount',
                     textAlign: TextAlign.end,
                   ),
                 ),
