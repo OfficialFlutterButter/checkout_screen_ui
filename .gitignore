@@ -33,6 +33,8 @@
 .pub-cache/
 .pub/
 build/
+# Library lockfile. The example app lockfile stays tracked.
+/pubspec.lock
 
 # Android related
 **/android/**/gradle-wrapper.jar

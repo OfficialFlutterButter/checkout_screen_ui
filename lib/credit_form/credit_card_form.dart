@@ -6,6 +6,8 @@ import '../ui_components/pay_button.dart';
 import 'validation.dart';
 import 'dart:async';
 
+export 'validation.dart' show CardBrand, CardTypeRegs;
+
 class CreditCardForm extends StatefulWidget {
   /// The CreditCardForm is a stateful widget containing a form and fields
   /// necessary to complete a typical credit card transaction
@@ -25,7 +27,10 @@ class CreditCardForm extends StatefulWidget {
     this.submitLabel = 'Pay',
     this.zipValidator,
     this.phoneValidator,
+    this.emailValidator,
+    this.nameValidator,
     this.formatE164Phone,
+    this.obscureCvv = false,
   });
 
   /// If you have a List of Countries that you would like to use to override the
@@ -84,8 +89,17 @@ class CreditCardForm extends StatefulWidget {
   /// Optional override for phone validation when [displayPhone] is true.
   final StringValidator? phoneValidator;
 
+  /// Optional override for email validation when [displayEmail] is true.
+  final StringValidator? emailValidator;
+
+  /// Optional override for the cardholder name validation.
+  final StringValidator? nameValidator;
+
   /// Optional E.164 formatter for [CardFormResults.phone] from the display field.
   final String Function(String displayPhone)? formatE164Phone;
+
+  /// When true, the CVV field hides its value. Defaults to false.
+  final bool obscureCvv;
 
   @override
   State<CreditCardForm> createState() => _CreditCardFormState();
@@ -169,7 +183,8 @@ class _CreditCardFormState extends State<CreditCardForm> {
         final digits = widget.initPhone.replaceAll(RegExp(r'\D'), '');
         if (digits.length >= 10) {
           final d = digits.substring(0, 10);
-          cPhone.text = '${d.substring(0, 3)}-${d.substring(3, 6)}-${d.substring(6)}';
+          cPhone.text =
+              '${d.substring(0, 3)}-${d.substring(3, 6)}-${d.substring(6)}';
         }
       }
     }
@@ -242,22 +257,23 @@ class _CreditCardFormState extends State<CreditCardForm> {
                 enabled: !widget.lockEmail,
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
-                  if (value!.isNotEmpty &&
-                      EmailSubmitRegexValidator().isValid(value)) {
+                  final StringValidator v =
+                      widget.emailValidator ?? EmailSubmitRegexValidator();
+                  if (v.isValid(value!)) {
                     return null;
                   }
                   return "Invalid";
                 },
                 decoration: const InputDecoration(
-                    contentPadding:
-                        EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-                    border: InputBorder.none),
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: 0,
+                    horizontal: 0,
+                  ),
+                  border: InputBorder.none,
+                ),
               ),
             ),
-          if (widget.displayEmail)
-            const SizedBox(
-              height: 20,
-            ),
+          if (widget.displayEmail) const SizedBox(height: 20),
           const Row(
             children: [
               Padding(
@@ -271,29 +287,30 @@ class _CreditCardFormState extends State<CreditCardForm> {
             formField: TextFormField(
               controller: cCardNumber,
               keyboardType: TextInputType.number,
+              enableSuggestions: false,
+              autocorrect: false,
+              enableIMEPersonalizedLearning: false,
+              smartDashesType: SmartDashesType.disabled,
+              smartQuotesType: SmartQuotesType.disabled,
               validator: (value) {
                 if (CreditNumberSubmitRegexValidator().isValid(value!)) {
                   return null;
                 }
                 return 'Enter a valid card number';
               },
-              inputFormatters: [
-                MaskedTextInputFormatter(
-                  mask: brand == CardBrand.amex
-                      ? 'xxxx xxxxxxx xxxx'
-                      : 'xxxx xxxx xxxx xxxx',
-                  separator: ' ',
-                )
-              ],
+              inputFormatters: const [CardNumberInputFormatter()],
               decoration: const InputDecoration(
                 hintText: '1234 1234 1234 1234',
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 5,
+                  horizontal: 16,
+                ),
                 border: InputBorder.none,
               ),
               onChanged: (input) {
-                final CardBrand newBrand =
-                    CardTypeRegs.findBrand(input.replaceAll(' ', ''));
+                final CardBrand newBrand = CardTypeRegs.findBrand(
+                  input.replaceAll(' ', ''),
+                );
                 if (brand != newBrand) {
                   setState(() {
                     brand = newBrand;
@@ -301,9 +318,7 @@ class _CreditCardFormState extends State<CreditCardForm> {
                 }
               },
             ),
-            suffix: _BrandsDisplay(
-              brand: brand,
-            ),
+            suffix: _BrandsDisplay(brand: brand),
           ),
           Row(
             children: [
@@ -313,6 +328,11 @@ class _CreditCardFormState extends State<CreditCardForm> {
                   formField: TextFormField(
                     controller: cExpiry,
                     keyboardType: TextInputType.number,
+                    enableSuggestions: false,
+                    autocorrect: false,
+                    enableIMEPersonalizedLearning: false,
+                    smartDashesType: SmartDashesType.disabled,
+                    smartQuotesType: SmartQuotesType.disabled,
                     validator: (value) {
                       if (isCreditExpiryOnOrAfterMonth(value!)) {
                         return null;
@@ -320,15 +340,14 @@ class _CreditCardFormState extends State<CreditCardForm> {
                       return "Invalid";
                     },
                     inputFormatters: [
-                      MaskedTextInputFormatter(
-                        mask: 'xx/xx',
-                        separator: '/',
-                      )
+                      MaskedTextInputFormatter(mask: 'xx/xx', separator: '/'),
                     ],
                     decoration: const InputDecoration(
                       hintText: 'MM / YY',
-                      contentPadding:
-                          EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 5,
+                        horizontal: 16,
+                      ),
                       border: InputBorder.none,
                     ),
                   ),
@@ -339,6 +358,7 @@ class _CreditCardFormState extends State<CreditCardForm> {
                   position: TextFormFieldPosition.bottomRight,
                   formField: TextFormField(
                     controller: cSecurity,
+                    obscureText: widget.obscureCvv,
                     validator: (value) {
                       if (CreditCvvSubmitRegexValidator().isValid(value!)) {
                         return null;
@@ -346,16 +366,23 @@ class _CreditCardFormState extends State<CreditCardForm> {
                       return "Invalid";
                     },
                     keyboardType: TextInputType.number,
+                    enableSuggestions: false,
+                    autocorrect: false,
+                    enableIMEPersonalizedLearning: false,
+                    smartDashesType: SmartDashesType.disabled,
+                    smartQuotesType: SmartQuotesType.disabled,
                     inputFormatters: [
                       MaskedTextInputFormatter(
                         mask: brand == CardBrand.amex ? 'xxxx' : 'xxx',
                         separator: '',
-                      )
+                      ),
                     ],
                     decoration: const InputDecoration(
                       hintText: 'CVC',
-                      contentPadding:
-                          EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 5,
+                        horizontal: 16,
+                      ),
                       border: InputBorder.none,
                     ),
                   ),
@@ -363,10 +390,14 @@ class _CreditCardFormState extends State<CreditCardForm> {
                     height: 30,
                     width: 30,
                     child: isCvvFront
-                        ? Image.asset('assets/images/cvv_front.png',
-                            package: 'checkout_screen_ui')
-                        : Image.asset('assets/images/cvv_back.png',
-                            package: 'checkout_screen_ui'),
+                        ? Image.asset(
+                            'assets/images/cvv_front.png',
+                            package: 'checkout_screen_ui',
+                          )
+                        : Image.asset(
+                            'assets/images/cvv_back.png',
+                            package: 'checkout_screen_ui',
+                          ),
                   ),
                 ),
               ),
@@ -385,16 +416,18 @@ class _CreditCardFormState extends State<CreditCardForm> {
               controller: cName,
               keyboardType: TextInputType.name,
               validator: (input) {
-                if (input!.isNotEmpty &&
-                    CreditNameSubmitRegexValidator().isValid(input)) {
+                final StringValidator v =
+                    widget.nameValidator ?? CreditNameSubmitRegexValidator();
+                if (v.isValid(input!)) {
                   return null;
-                } else {
-                  return 'Enter a valid name';
                 }
+                return 'Enter a valid name';
               },
               decoration: const InputDecoration(
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 5,
+                  horizontal: 16,
+                ),
                 border: InputBorder.none,
               ),
             ),
@@ -417,14 +450,18 @@ class _CreditCardFormState extends State<CreditCardForm> {
               items: widget.countries
                   .asMap()
                   .entries
-                  .map((e) => DropdownMenuItem<int>(
-                        value: e.key,
-                        child: Text(e.value),
-                      ))
+                  .map(
+                    (e) => DropdownMenuItem<int>(
+                      value: e.key,
+                      child: Text(e.value),
+                    ),
+                  )
                   .toList(),
               decoration: const InputDecoration(
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 5,
+                  horizontal: 16,
+                ),
                 border: InputBorder.none,
               ),
               onChanged: (widget.countries.length > 1)
@@ -454,22 +491,19 @@ class _CreditCardFormState extends State<CreditCardForm> {
                 return 'Enter a valid zip code';
               },
               inputFormatters: [
-                MaskedTextInputFormatter(
-                  mask: 'xxxxx',
-                  separator: '',
-                )
+                MaskedTextInputFormatter(mask: 'xxxxx', separator: ''),
               ],
               decoration: const InputDecoration(
                 hintText: 'ZIP',
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 5,
+                  horizontal: 16,
+                ),
                 border: InputBorder.none,
               ),
             ),
           ),
-          const SizedBox(
-            height: 30,
-          ),
+          const SizedBox(height: 30),
           if (widget.displayPhone)
             const Row(
               children: [
@@ -498,18 +532,18 @@ class _CreditCardFormState extends State<CreditCardForm> {
                   MaskedTextInputFormatter(
                     mask: 'xxx-xxx-xxxx',
                     separator: '-',
-                  )
+                  ),
                 ],
                 decoration: const InputDecoration(
-                  contentPadding:
-                      EdgeInsets.symmetric(vertical: 5, horizontal: 16),
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: 5,
+                    horizontal: 16,
+                  ),
                   border: InputBorder.none,
                 ),
               ),
             ),
-          const SizedBox(
-            height: 30,
-          ),
+          const SizedBox(height: 30),
           Semantics(
             button: true,
             label: widget.submitLabel,
@@ -521,7 +555,8 @@ class _CreditCardFormState extends State<CreditCardForm> {
                 final bool result = _formKey.currentState!.validate();
                 if (result) {
                   _formKey.currentState!.save();
-                  widget.onCardPay(CardFormResults(
+                  widget.onCardPay(
+                    CardFormResults(
                       email: cEmail.text,
                       cardNumber: cCardNumber.text.replaceAll(' ', ''),
                       cardExpiry: cExpiry.text,
@@ -529,7 +564,9 @@ class _CreditCardFormState extends State<CreditCardForm> {
                       name: cName.text,
                       country: cCountry.text,
                       zip: cZip.text,
-                      phone: _formatPhoneForResults()));
+                      phone: _formatPhoneForResults(),
+                    ),
+                  );
                 }
               },
             ),
@@ -537,32 +574,6 @@ class _CreditCardFormState extends State<CreditCardForm> {
         ],
       ),
     );
-  }
-}
-
-// ignore: constant_identifier_names
-enum CardBrand { n_a, visa, masterCard, discover, amex, diners, jcb, union }
-
-class CardTypeRegs {
-  static final RegExp _visa = RegExp(r'^4[0-9]{0,}$');
-  static final RegExp _master =
-      RegExp(r'^(5[1-5]|222[1-9]|22[3-9]|2[3-6]|27[01]|2720)[0-9]{0,}$');
-  static final RegExp _discover = RegExp(
-      r'^(6011|65|64[4-9]|62212[6-9]|6221[3-9]|622[2-8]|6229[01]|62292[0-5])[0-9]{0,}$');
-  static final RegExp _amex = RegExp(r'^3[47][0-9]{0,}$');
-  static final RegExp _diners = RegExp(r'^3(?:0[0-59]{1}|[689])[0-9]{0,}$');
-  static final RegExp _jcb = RegExp(r'^(?:2131|1800|35)[0-9]{0,}$');
-  static final RegExp _union = RegExp(r'^(62|88)\d+$');
-
-  static CardBrand findBrand(String cardNUmber) {
-    if (_visa.matchAsPrefix(cardNUmber) != null) return CardBrand.visa;
-    if (_master.matchAsPrefix(cardNUmber) != null) return CardBrand.masterCard;
-    if (_discover.matchAsPrefix(cardNUmber) != null) return CardBrand.discover;
-    if (_diners.matchAsPrefix(cardNUmber) != null) return CardBrand.diners;
-    if (_amex.matchAsPrefix(cardNUmber) != null) return CardBrand.amex;
-    if (_jcb.matchAsPrefix(cardNUmber) != null) return CardBrand.jcb;
-    if (_union.matchAsPrefix(cardNUmber) != null) return CardBrand.union;
-    return CardBrand.n_a;
   }
 }
 
@@ -578,44 +589,58 @@ class _BrandsDisplayState extends State<_BrandsDisplay> {
   Widget diners = SizedBox(
     height: 15,
     width: 30,
-    child: Image.asset('assets/images/card_diners.png',
-        package: 'checkout_screen_ui'),
+    child: Image.asset(
+      'assets/images/card_diners.png',
+      package: 'checkout_screen_ui',
+    ),
   );
   Widget jcb = SizedBox(
     height: 15,
     width: 30,
-    child: Image.asset('assets/images/card_jcb.png',
-        package: 'checkout_screen_ui'),
+    child: Image.asset(
+      'assets/images/card_jcb.png',
+      package: 'checkout_screen_ui',
+    ),
   );
   Widget union = SizedBox(
     height: 15,
     width: 30,
-    child: Image.asset('assets/images/card_union_pay.png',
-        package: 'checkout_screen_ui'),
+    child: Image.asset(
+      'assets/images/card_union_pay.png',
+      package: 'checkout_screen_ui',
+    ),
   );
   Widget discover = SizedBox(
     height: 15,
     width: 30,
-    child: Image.asset('assets/images/card_discover.png',
-        package: 'checkout_screen_ui'),
+    child: Image.asset(
+      'assets/images/card_discover.png',
+      package: 'checkout_screen_ui',
+    ),
   );
   Widget visa = SizedBox(
     height: 15,
     width: 30,
-    child: Image.asset('assets/images/card_visa.png',
-        package: 'checkout_screen_ui'),
+    child: Image.asset(
+      'assets/images/card_visa.png',
+      package: 'checkout_screen_ui',
+    ),
   );
   Widget master = SizedBox(
     height: 15,
     width: 30,
-    child: Image.asset('assets/images/card_mastercard.png',
-        package: 'checkout_screen_ui'),
+    child: Image.asset(
+      'assets/images/card_mastercard.png',
+      package: 'checkout_screen_ui',
+    ),
   );
   Widget amex = SizedBox(
     height: 15,
     width: 30,
-    child: Image.asset('assets/images/card_amex.png',
-        package: 'checkout_screen_ui'),
+    child: Image.asset(
+      'assets/images/card_amex.png',
+      package: 'checkout_screen_ui',
+    ),
   );
 
   Widget? image;

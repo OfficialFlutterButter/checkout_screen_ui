@@ -13,7 +13,7 @@ In the `pubspec.yaml` of your Flutter project, add:
 
 ```yaml
 dependencies:
-  checkout_screen_ui: ^1.1.0
+  checkout_screen_ui: ^1.1.1
 ```
 
 Import the barrel (recommended) or specific libraries:
@@ -82,5 +82,5 @@ easier or better way to do something, consider [opening a pull request][pull].
 You can always [file an issue][issue], but generally speaking feature requests
 will be on a best-effort basis.
 
-[issue]: https://github.com/jonesw5/checkout_screen_ui/issues
-[pull]: https://github.com/jonesw5/checkout_screen_ui/pulls
+[issue]: https://github.com/OfficialFlutterButter/checkout_screen_ui/issues
+[pull]: https://github.com/OfficialFlutterButter/checkout_screen_ui/pulls

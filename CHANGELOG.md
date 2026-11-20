@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.1
+
+- Card numbers: validate by brand length and Luhn. Visa 13/16/19, Mastercard 16, Amex 15 (grouped 4-6-5), Discover, JCB, and UnionPay 16–19, Diners 14–19, unrecognized brands 12–19. A number that fails Luhn, such as `4242 4242 4242 4241`, is rejected.
+- Card, expiry, phone, ZIP, and CVV masks accept paste, autofill, and mid-field edits.
+- Cardholder names accept Unicode letters, accents, apostrophes, hyphens, and periods.
+- Email validation accepts domains with more than one dot, such as `name@mail.example.com`.
+- `CreditCardForm` gains optional `emailValidator`, `nameValidator`, and `obscureCvv` (default `false`). Card number, expiry, and CVV fields disable keyboard suggestions, autocorrect, and IME learning.
+
 ## 1.1.0
 
 - Flutter Web: depend on `url_launcher_web` ^2.4.2 so `package:web` resolves to a Dart 3.10+–compatible release (fixes `dart compile js` failures with `web` 0.3.x).

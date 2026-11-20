@@ -19,7 +19,7 @@ class CardFormResults {
   /// email string
   final String email;
 
-  /// 15 to 16 digit credit card number. numeric characters only and no spaces
+  /// 12 to 19 digit credit card number. numeric characters only and no spaces
   final String cardNumber;
 
   /// full expiration date string MM/YY format
